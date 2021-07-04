@@ -24,6 +24,7 @@
 #include "copyright.h"
 #include "syscall.h"
 #include "system.h"
+#define MaxFileLength 255 // maximum filename length
 
 // Generic response
 #define SUCCESS    0
