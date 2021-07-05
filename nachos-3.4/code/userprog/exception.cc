@@ -24,11 +24,11 @@
 #include "copyright.h"
 #include "syscall.h"
 #include "system.h"
-#define MaxFileLength 255 // maximum filename length
+#define MaxFileLength 255  // maximum filename length
 
 // Generic response
-#define SUCCESS    0
-#define FAILED    -1
+#define SUCCESS 0
+#define FAILED -1
 
 //----------------------------------------------------------------------
 // User2System
@@ -155,6 +155,74 @@ void ExceptionHandler(ExceptionType which) {
                     printf("\nFile '%s' created successfully!", filename);
                     machine->WriteRegister(2, SUCCESS);
                     delete[] filename;
+                    break;
+                }
+                case SC_Open: {
+                    int virtAddr = machine->ReadRegister(4);
+                    int type = machine->ReadRegister(5);
+
+                    if (fileSystem->index >= 10) {
+                        printf("\tError: Not enough space in fileDir!\n");
+                        machine->WriteRegister(2, -1);
+                        break;
+                    }
+
+                    if (type != 0 && type != 1) {
+                        printf("\tError: Invalid open file flag!\n");
+                        machine->WriteRegister(2, -1);
+                        break;
+                    }
+
+                    char *filename = User2System(virtAddr, MaxFileLength);
+
+                    if(strlen(filename) == 0){
+                        printf("\tError: Invalid file name!\n");
+                        machine->WriteRegister(2, -1);
+                        break;
+                    }
+
+                    if (strcmp(filename, "stdin") == 0) {
+                        printf("----------stdin----------\n");
+                        machine->WriteRegister(2, 0);
+                        delete[] filename;
+                        break;
+                    }
+
+                    if (strcmp(filename, "stdout") == 0) {
+                        printf("----------stdout----------\n");
+                        machine->WriteRegister(2, 1);
+                        delete[] filename;
+                        break;
+                    }
+
+                    OpenFileId openedSlot = fileSystem->Open(filename, type);
+                    if (openedSlot == -1) {
+                        printf("\tError: Unable to open file!\n");
+                        machine->WriteRegister(2, -1);
+                        break;
+                    }
+
+                    printf("\"%s\" opened successfully!", filename);
+                    machine->WriteRegister(2, openedSlot);
+
+                    delete[] filename;
+                    break;
+                }
+
+                case SC_Close: {
+                    OpenFileId openFileId = machine->ReadRegister(4);
+                    
+                    //??? needed?
+                    if(fileSystem->openFile[openFileId] == NULL){
+                        printf("\tError: Close file failed!\n");
+                        machine->WriteRegister(2, -1);
+                        break;
+                    }
+
+                    delete fileSystem->openFile[openFileId];
+                    fileSystem->openFile[openFileId] = NULL;
+
+                    machine->WriteRegister(2, 0);
                     break;
                 }
             }

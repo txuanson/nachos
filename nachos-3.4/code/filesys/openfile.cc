@@ -20,7 +20,7 @@
 #endif
 
 //----------------------------------------------------------------------
-// OpenFile::OpenFile
+// OpenFile::OpenFile(int sector)
 // 	Open a Nachos file for reading and writing.  Bring the file header
 //	into memory while the file is open.
 //
@@ -32,6 +32,24 @@ OpenFile::OpenFile(int sector)
     hdr = new FileHeader;
     hdr->FetchFrom(sector);
     seekPosition = 0;
+    type = 0;
+}
+
+//----------------------------------------------------------------------
+// OpenFile::OpenFile(int sector, int type)
+// 	Open a Nachos file for reading and writing.  Bring the file header
+//	into memory while the file is open.
+//
+//	"sector" -- the location on disk of the file header for this file
+//	"type" -- type of the file
+//----------------------------------------------------------------------
+
+OpenFile::OpenFile(int sector, int type)
+{
+    hdr = new FileHeader;
+    hdr->FetchFrom(sector);
+    seekPosition = 0;
+    this->type = type;
 }
 
 //----------------------------------------------------------------------
