@@ -324,6 +324,42 @@ void ExceptionHandler(ExceptionType which) {
                     }
 
                     delete[] buffer;
+                    break;
+                }
+
+                case SC_Seek: {
+                    int pos = machine->ReadRegister(4);
+                    int fileId = machine->ReadRegister(5);
+                    
+                    if(fileId == ConsoleInput || fileId == ConsoleOutput){
+                        printf("\tError: You cannot use Seek in console\n");
+                        machine->WriteRegister(2, -1);
+                        break;
+                    }
+                    
+                    if(fileId < ConsoleInput || fileId >= 10){
+                        printf("\tError: Invalid file id!\n");
+                        machine->WriteRegister(2, -1);
+                        break;
+                    }
+
+                    if (fileSystem->openFile[fileId] == NULL) {
+                        printf("\tError: Requested file is not opened!\n");
+                        machine->WriteRegister(2, -1);
+                        break;
+                    }
+
+                    pos = pos == -1 ? fileSystem->openFile[fileId]->Length() : pos;
+                    if(pos < 0 || pos > fileSystem->openFile[fileId]->Length()){
+                        printf("\tError: Invalid seek position!\n");
+                        machine->WriteRegister(2, -1);
+                        break;
+                    }
+                    else {
+                        fileSystem->openFile[fileId]->Seek(pos);
+                        machine->WriteRegister(2, pos);
+                    }
+                    break;
                 }
             }
 
