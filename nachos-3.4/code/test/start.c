@@ -98,13 +98,13 @@ Read:
 	j	$31
 	.end Read
 
-	.globl Write
-	.ent	Write
-Write:
+	.globl WriteFile
+	.ent	WriteFile
+WriteFile:
 	addiu $2,$0,SC_Write
 	syscall
 	j	$31
-	.end Write
+	.end WriteFile
 
 	.globl CloseFile
 	.ent	CloseFile

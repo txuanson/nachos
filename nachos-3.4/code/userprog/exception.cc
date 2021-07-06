@@ -175,25 +175,25 @@ void ExceptionHandler(ExceptionType which) {
 
                     char *filename = User2System(virtAddr, MaxFileLength);
 
-                    if(strlen(filename) == 0){
+                    if (strlen(filename) == 0) {
                         printf("\tError: Invalid file name!\n");
                         machine->WriteRegister(2, -1);
                         break;
                     }
 
-                    if (strcmp(filename, "stdin") == 0) {
-                        printf("----------stdin----------\n");
-                        machine->WriteRegister(2, 0);
-                        delete[] filename;
-                        break;
-                    }
+                    // if (strcmp(filename, "stdin") == 0) {
+                    //     printf("----------stdin----------\n");
+                    //     machine->WriteRegister(2, 0);
+                    //     delete[] filename;
+                    //     break;
+                    // }
 
-                    if (strcmp(filename, "stdout") == 0) {
-                        printf("----------stdout----------\n");
-                        machine->WriteRegister(2, 1);
-                        delete[] filename;
-                        break;
-                    }
+                    // if (strcmp(filename, "stdout") == 0) {
+                    //     printf("----------stdout----------\n");
+                    //     machine->WriteRegister(2, 1);
+                    //     delete[] filename;
+                    //     break;
+                    // }
 
                     OpenFileID openedSlot = fileSystem->Open(filename, type);
                     if (openedSlot == -1) {
@@ -213,7 +213,7 @@ void ExceptionHandler(ExceptionType which) {
                     OpenFileID openFileId = machine->ReadRegister(4);
 
                     //??? needed?
-                    if(fileSystem->openFile[openFileId] == NULL){
+                    if (fileSystem->openFile[openFileId] == NULL) {
                         printf("\tError: Close file failed!\n");
                         machine->WriteRegister(2, -1);
                         break;
@@ -225,6 +225,105 @@ void ExceptionHandler(ExceptionType which) {
                     --(fileSystem->index);
                     machine->WriteRegister(2, 0);
                     break;
+                }
+
+                case SC_Read: {
+                    int virtAddr = machine->ReadRegister(4);
+                    int charCount = machine->ReadRegister(5);
+                    int fileId = machine->ReadRegister(6);
+
+                    if (fileId < 0 || fileId >= 10 || fileId == ConsoleOutput) {
+                        printf("\tError: Invalid fileId!\n");
+                        machine->WriteRegister(2, -1);
+                        break;
+                    }
+
+                    if (fileSystem->openFile[fileId] == NULL) {
+                        printf("\tError: Requested file is not opened!\n");
+                        machine->WriteRegister(2, -1);
+                        break;
+                    }
+
+                    char *buffer = User2System(virtAddr, charCount);
+
+                    if (fileId == ConsoleInput) {
+                        int bytesRead = gSynchConsole->Read(buffer, charCount);
+                        System2User(virtAddr, bytesRead, buffer);
+                        machine->WriteRegister(2, bytesRead);
+                        delete[] buffer;
+                        break;
+                    }
+
+                    int before = fileSystem->openFile[fileId]->GetCurrentPos();
+
+                    // if (before == fileSystem->openFile[fileId]->Length()) {
+                    //     printf("\tError: End of file!\n");
+                    //     machine->WriteRegister(2, -2);
+                    //     break;
+                    // }
+
+                    if (fileSystem->openFile[fileId]->Read(buffer, charCount) > 0) {
+                        int after = fileSystem->openFile[fileId]->GetCurrentPos();
+                        int bytesRead = after - before;
+                        System2User(virtAddr, bytesRead, buffer);
+                        machine->WriteRegister(2, bytesRead);
+
+                    } else {
+                        //EOF
+                        machine->WriteRegister(2, -2);
+                    }
+
+                    delete[] buffer;
+                    break;
+                }
+
+                case SC_Write: {
+                    int virtAddr = machine->ReadRegister(4);
+                    int charCount = machine->ReadRegister(5);
+                    int fileId = machine->ReadRegister(6);
+
+                    if (fileId <= 0 || fileId >= 10) {
+                        printf("\tError: Invalid fileId!\n");
+                        machine->WriteRegister(2, -1);
+                        break;
+                    }
+
+                    if (fileSystem->openFile[fileId] == NULL) {
+                        printf("\tError: Requested file is not opened!\n");
+                        machine->WriteRegister(2, -1);
+                        break;
+                    }
+
+                    if (fileSystem->openFile[fileId]->type == 1) {
+                        printf("\tError: Permission denied! The requested file is in read-only mode!\n");
+                        machine->WriteRegister(2, -1);
+                        break;
+                    }
+
+                    char *buffer = User2System(virtAddr, charCount);
+
+                    if (fileId == ConsoleOutput) {
+                        int bytesWrite = gSynchConsole->Write(buffer, charCount);
+                        System2User(virtAddr, bytesWrite, buffer);
+                        machine->WriteRegister(2, bytesWrite);
+                        delete[] buffer;
+                        break;
+                    }
+
+                    int before = fileSystem->openFile[fileId]->GetCurrentPos();
+
+                    if (fileSystem->openFile[fileId]->Write(buffer, charCount) > 0) {
+                        int after = fileSystem->openFile[fileId]->GetCurrentPos();
+                        int bytesWrite = after - before;
+                        System2User(virtAddr, bytesWrite, buffer);
+                        machine->WriteRegister(2, bytesWrite);
+
+                    } else {
+                        //EOF
+                        machine->WriteRegister(2, -2);
+                    }
+
+                    delete[] buffer;
                 }
             }
 
