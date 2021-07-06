@@ -85,8 +85,10 @@ FileSystem::FileSystem(bool format) {
     this->Create("stdin", 0);
     this->Create("stdout", 0);
 
-    openFile[index++] = this->Open("stdin", F_RW);
-    openFile[index++] = this->Open("stdout", F_RO);
+    openFile[index] = this->Open("stdin");
+    openFile[index++]->type = F_RW;
+    openFile[index] = this->Open("stdout");
+    openFile[index++]->type = F_RO;
     DEBUG('f', "Initializing the file system.\n");
     if (format) {
         BitMap *freeMap = new BitMap(NumSectors);
@@ -244,9 +246,9 @@ FileSystem::Open(char *name) {
 
     DEBUG('f', "Opening file %s\n", name);
     directory->FetchFrom(directoryFile);
-    sector = directory->Find(name); 
-    if (sector >= 0) 		
-	openFile = new OpenFile(sector);	// name was found in directory 
+    sector = directory->Find(name);
+    if (sector >= 0)
+	openFile = new OpenFile(sector);	// name was found in directory
     delete directory;
     return openFile;				// return NULL if not found
 }

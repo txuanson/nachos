@@ -35,7 +35,7 @@
 #ifndef FS_H
 #define FS_H
 
-typedef int OpenFileID
+typedef int OpenFileID;
 
 #include "copyright.h"
 #include "openfile.h"
@@ -47,7 +47,7 @@ typedef int OpenFileID
 #define F_RW 0
 #define F_RO 1
 
-#ifdef FILESYS_STUB  // Temporarily implement file system calls as 
+#ifdef FILESYS_STUB  // Temporarily implement file system calls as
                                             // calls to UNIX, until the real file system                   \
                                             // implementation is available
 class FileSystem {
@@ -67,8 +67,10 @@ class FileSystem {
         this->Create("stdin", 0);
         this->Create("stdout", 0);
 
-        openFile[index++] = this->Open("stdin", F_RW);
-        openFile[index++] = this->Open("stdout", F_RO);
+        openFile[index] = this->Open("stdin");
+        openFile[index++]->type = F_RW;
+        openFile[index] = this->Open("stdout");
+        openFile[index++]->type = F_RO;
     }
 
     ~FileSystem() {
@@ -95,7 +97,7 @@ class FileSystem {
     OpenFileID Open(char *name, int type) {
         int fileDescriptor = OpenForReadWrite(name, FALSE);
 
-        if (fileDescriptor == -1) return NULL;
+        if (fileDescriptor == -1) return -1;
         int freeSlot = this->FindFreeSlot();
         openFile[freeSlot] = new OpenFile(fileDescriptor, type);
         ++index;

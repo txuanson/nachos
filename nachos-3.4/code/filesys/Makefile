@@ -511,9 +511,9 @@ filehdr.o: ../filesys/filehdr.cc /usr/include/stdc-predef.h \
  ../filesys/synchdisk.h ../machine/disk.h ../threads/synch.h \
  ../filesys/filehdr.h ../userprog/bitmap.h ../filesys/openfile.h
 filesys.o: ../filesys/filesys.cc /usr/include/stdc-predef.h \
- ../threads/copyright.h ../machine/disk.h ../threads/utility.h \
- ../threads/copyright.h ../threads/bool.h ../machine/sysdep.h \
- /usr/include/stdio.h /usr/include/features.h \
+ ../filesys/filesys.h ../threads/copyright.h ../filesys/openfile.h \
+ ../threads/utility.h ../threads/copyright.h ../threads/bool.h \
+ ../machine/sysdep.h /usr/include/stdio.h /usr/include/features.h \
  /usr/include/i386-linux-gnu/sys/cdefs.h \
  /usr/include/i386-linux-gnu/bits/wordsize.h \
  /usr/include/i386-linux-gnu/gnu/stubs.h \
@@ -525,8 +525,7 @@ filesys.o: ../filesys/filesys.cc /usr/include/stdc-predef.h \
  /usr/include/i386-linux-gnu/bits/stdio_lim.h \
  /usr/include/i386-linux-gnu/bits/sys_errlist.h /usr/include/string.h \
  /usr/include/xlocale.h ../userprog/bitmap.h ../filesys/openfile.h \
- ../filesys/directory.h ../filesys/openfile.h ../filesys/filehdr.h \
- ../filesys/filesys.h
+ ../filesys/directory.h ../machine/disk.h ../filesys/filehdr.h
 fstest.o: ../filesys/fstest.cc /usr/include/stdc-predef.h \
  ../threads/copyright.h ../threads/utility.h ../threads/copyright.h \
  ../threads/bool.h ../machine/sysdep.h /usr/include/stdio.h \

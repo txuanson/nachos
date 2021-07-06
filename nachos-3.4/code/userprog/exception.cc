@@ -152,7 +152,7 @@ void ExceptionHandler(ExceptionType which) {
                         break;
                     }
 
-                    printf("\nFile '%s' created successfully!", filename);
+                    printf("File '%s' created successfully!\n", filename);
                     machine->WriteRegister(2, SUCCESS);
                     delete[] filename;
                     break;
@@ -195,14 +195,14 @@ void ExceptionHandler(ExceptionType which) {
                         break;
                     }
 
-                    OpenFileId openedSlot = fileSystem->Open(filename, type);
+                    OpenFileID openedSlot = fileSystem->Open(filename, type);
                     if (openedSlot == -1) {
                         printf("\tError: Unable to open file!\n");
                         machine->WriteRegister(2, -1);
                         break;
                     }
 
-                    printf("\"%s\" opened successfully!", filename);
+                    printf("\"%s\" opened successfully!\n", filename);
                     machine->WriteRegister(2, openedSlot);
 
                     delete[] filename;
@@ -210,8 +210,8 @@ void ExceptionHandler(ExceptionType which) {
                 }
 
                 case SC_Close: {
-                    OpenFileId openFileId = machine->ReadRegister(4);
-                    
+                    OpenFileID openFileId = machine->ReadRegister(4);
+
                     //??? needed?
                     if(fileSystem->openFile[openFileId] == NULL){
                         printf("\tError: Close file failed!\n");
@@ -221,7 +221,8 @@ void ExceptionHandler(ExceptionType which) {
 
                     delete fileSystem->openFile[openFileId];
                     fileSystem->openFile[openFileId] = NULL;
-
+                    printf("File with id \"%d\" closed successfully!\n", openFileId);
+                    --(fileSystem->index);
                     machine->WriteRegister(2, 0);
                     break;
                 }
