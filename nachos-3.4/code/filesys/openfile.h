@@ -30,18 +30,24 @@ class OpenFile {
    public:
     int type;  // 0: read-write
                // 1: read-only
-
+    char *filename;
     OpenFile(int f) {
         file = f;
         currentOffset = 0;
         type = 0;
     }  // open the file
-    OpenFile(int f, int t) {
+    OpenFile(int f, int t, char *filename) {
         file = f;
         currentOffset = 0;
         type = t;
-    }                             // open the file
-    ~OpenFile() { Close(file); }  // close the file
+        this->filename = new char[strlen(filename) + 1];
+        for (int i = 0; i <= strlen(filename); ++i)
+            this->filename[i] = filename[i];
+    }  // open the file
+    ~OpenFile() {
+        delete[] filename;
+        Close(file);
+    }  // close the file
 
     int ReadAt(char *into, int numBytes, int position) {
         Lseek(file, position, 0);
@@ -85,10 +91,10 @@ class OpenFile {
    public:
     int type;  // 0: read-write
                // 1: read-only
-
-    OpenFile(int sector);            // Open a file whose header is located
-                                     // at "sector" on the disk
-    OpenFile(int sector, int type);  // Custom OpenFile base on default OpenFile
+    char *filename;
+    OpenFile(int sector);                            // Open a file whose header is located
+                                                     // at "sector" on the disk
+    OpenFile(int sector, int type, char *filename);  // Custom OpenFile base on default OpenFile
 
     ~OpenFile();  // Close the file
 
@@ -111,9 +117,9 @@ class OpenFile {
                    // than the UNIX idiom -- lseek to
                    // end of file, tell, lseek back
 
-	int GetCurrentPos() {
+    int GetCurrentPos() {
         return seekPosition;
-    }			   
+    }
 
    private:
     FileHeader *hdr;   // Header for this file

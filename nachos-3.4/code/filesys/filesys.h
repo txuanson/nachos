@@ -99,7 +99,7 @@ class FileSystem {
 
         if (fileDescriptor == -1) return -1;
         int freeSlot = this->FindFreeSlot();
-        openFile[freeSlot] = new OpenFile(fileDescriptor, type);
+        openFile[freeSlot] = new OpenFile(fileDescriptor, type, name);
         ++index;
         return openFile[freeSlot] ? freeSlot : -1;
     }

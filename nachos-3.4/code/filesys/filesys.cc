@@ -275,7 +275,7 @@ FileSystem::Open(char *name, int type) {
 
     int freeSlot = this->FindFreeSlot();
     if (sector >= 0)
-        openFile[freeSlot] = new OpenFile(sector, type);  // name was found in directory
+        openFile[freeSlot] = new OpenFile(sector, type, name);  // name was found in directory
     delete directory;
     ++index;
     return openFile[freeSlot] ? freeSlot : -1;  // return -1 if not found

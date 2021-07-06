@@ -44,12 +44,15 @@ OpenFile::OpenFile(int sector)
 //	"type" -- type of the file
 //----------------------------------------------------------------------
 
-OpenFile::OpenFile(int sector, int type)
+OpenFile::OpenFile(int sector, int type, char* filename)
 {
     hdr = new FileHeader;
     hdr->FetchFrom(sector);
     seekPosition = 0;
     this->type = type;
+    this->filename = new char[strlen(filename) + 1];
+        for (int i = 0; i <= strlen(filename); ++i)
+            this->filename[i] = filename[i];
 }
 
 //----------------------------------------------------------------------
@@ -60,6 +63,7 @@ OpenFile::OpenFile(int sector, int type)
 OpenFile::~OpenFile()
 {
     delete hdr;
+    delete[] filename;
 }
 
 //----------------------------------------------------------------------
