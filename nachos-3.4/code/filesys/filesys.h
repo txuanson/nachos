@@ -68,8 +68,10 @@ class FileSystem {
         this->Create("stdout", 0);
 
         openFile[index] = this->Open("stdin");
+        openFile[index]->filename = "stdin";
         openFile[index++]->type = F_RO;
         openFile[index] = this->Open("stdout");
+        openFile[index]->filename = "stdout";
         openFile[index++]->type = F_RW;
     }
 

@@ -40,12 +40,10 @@ class OpenFile {
         file = f;
         currentOffset = 0;
         type = t;
-        this->filename = new char[strlen(filename) + 1];
-        for (int i = 0; i <= strlen(filename); ++i)
-            this->filename[i] = filename[i];
+        this->filename = filename;
     }  // open the file
     ~OpenFile() {
-        delete[] filename;
+        //delete[] filename;
         Close(file);
     }  // close the file
 

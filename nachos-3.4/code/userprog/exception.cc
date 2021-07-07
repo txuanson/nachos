@@ -128,7 +128,7 @@ void ExceptionHandler(ExceptionType which) {
                     char *filename;
 
                     virtAddr = machine->ReadRegister(4);
-                    filename = User2System(virtAddr, MaxFileLength + 1);
+                    filename = User2System(virtAddr, MaxFileLength);
 
                     if (strlen(filename) == 0) {
                         printf("\tError: Invalid filename.");
@@ -163,13 +163,13 @@ void ExceptionHandler(ExceptionType which) {
 
                     if (fileSystem->index >= 10) {
                         printf("\tError: Not enough space in fileDir!\n");
-                        machine->WriteRegister(2, -1);
+                        machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     if (type != 0 && type != 1) {
                         printf("\tError: Invalid open file flag!\n");
-                        machine->WriteRegister(2, -1);
+                        machine->WriteRegister(2, FAILED);
                         break;
                     }
 
@@ -177,7 +177,7 @@ void ExceptionHandler(ExceptionType which) {
 
                     if (strlen(filename) == 0) {
                         printf("\tError: Invalid file name!\n");
-                        machine->WriteRegister(2, -1);
+                        machine->WriteRegister(2, FAILED);
                         delete[] filename;
                         break;
                     }
@@ -199,7 +199,7 @@ void ExceptionHandler(ExceptionType which) {
                     OpenFileID openedSlot = fileSystem->Open(filename, type);
                     if (openedSlot == -1) {
                         printf("\tError: Unable to open file!\n");
-                        machine->WriteRegister(2, -1);
+                        machine->WriteRegister(2, FAILED);
                         delete[] filename;
                         break;
                     }
@@ -219,18 +219,19 @@ void ExceptionHandler(ExceptionType which) {
                       machine->WriteRegister(2, -1);
                       break;
                     }
-                    
+
                     //??? needed?
                     if (fileSystem->openFile[openFileId] == NULL) {
                         printf("\tError: Close file failed!\n");
-                        machine->WriteRegister(2, -1);
+                        machine->WriteRegister(2, FAILED);
                         break;
                     }
 
+
+                    printf("\nFile with name \"%s\" closed successfully!\n", fileSystem->openFile[openFileId]->filename);
+                    --(fileSystem->index);
                     delete fileSystem->openFile[openFileId];
                     fileSystem->openFile[openFileId] = NULL;
-                    printf("\nFile with id \"%d\" closed successfully!\n", openFileId);
-                    --(fileSystem->index);
                     machine->WriteRegister(2, 0);
                     break;
                 }
