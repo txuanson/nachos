@@ -122,6 +122,30 @@ CloseFile:
   j	$31
   .end CloseFile
 
+  .globl Delete
+  .ent	Delete
+Delete:
+  addiu $2,$0,SC_Delete
+  syscall
+  j	$31
+  .end Delete
+
+  .globl Print
+  .ent	Print
+Print:
+  addiu $2,$0,SC_Print
+  syscall
+  j	$31
+  .end Print
+
+  .globl Scan
+  .ent	Scan
+Scan:
+  addiu $2,$0,SC_Scan
+  syscall
+  j	$31
+  .end Scan
+
 	.globl Fork
 	.ent	Fork
 Fork:

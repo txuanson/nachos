@@ -24,11 +24,6 @@
 #include "copyright.h"
 #include "syscall.h"
 #include "system.h"
-#define MaxFileLength 255  // maximum filename length
-
-// Generic response
-#define SUCCESS 0
-#define FAILED -1
 
 //----------------------------------------------------------------------
 // User2System
@@ -131,28 +126,28 @@ void ExceptionHandler(ExceptionType which) {
                     filename = User2System(virtAddr, MaxFileLength);
 
                     if (strlen(filename) == 0) {
-                        printf("\tError: Invalid filename.");
+                        printf("\n\tError: Invalid filename.");
                         machine->WriteRegister(2, FAILED);
                         delete[] filename;
                         break;
                     }
 
                     if (filename == NULL) {
-                        DEBUG('a', "\tError: Not enough memory in system to store filename");
-                        printf("\tError: Not enough memory in system");
+                        DEBUG('a', "\n\tError: Not enough memory in system to store filename");
+                        printf("\n\tError: Not enough memory in system");
                         machine->WriteRegister(2, FAILED);
                         delete[] filename;
                         break;
                     }
 
                     if (!fileSystem->Create(filename, 0)) {
-                        printf("\tError: Error when creating file: \"%s\"", filename);
+                        printf("\n\tError: Error when creating file: \"%s\"", filename);
                         machine->WriteRegister(2, FAILED);
                         delete[] filename;
                         break;
                     }
 
-                    printf("File '%s' created successfully!\n", filename);
+                    //printf("File '%s' created successfully!\n", filename);
                     machine->WriteRegister(2, SUCCESS);
                     delete[] filename;
                     break;
@@ -162,13 +157,13 @@ void ExceptionHandler(ExceptionType which) {
                     int type = machine->ReadRegister(5);
 
                     if (fileSystem->index >= 10) {
-                        printf("\tError: Not enough space in fileDir!\n");
+                        printf("\n\tError: Not enough space in fileDir!\n");
                         machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     if (type != 0 && type != 1) {
-                        printf("\tError: Invalid open file flag!\n");
+                        printf("\n\tError: Invalid open file flag!\n");
                         machine->WriteRegister(2, FAILED);
                         break;
                     }
@@ -176,7 +171,7 @@ void ExceptionHandler(ExceptionType which) {
                     char *filename = User2System(virtAddr, MaxFileLength);
 
                     if (strlen(filename) == 0) {
-                        printf("\tError: Invalid file name!\n");
+                        printf("\n\tError: Invalid file name!\n");
                         machine->WriteRegister(2, FAILED);
                         delete[] filename;
                         break;
@@ -184,7 +179,7 @@ void ExceptionHandler(ExceptionType which) {
 
                     int findPos = fileSystem->FindByName(filename);
                     if (findPos != -1){
-                      printf("\tError: File opened at id %d!\n", findPos);
+                      printf("\n\tError: File opened at id %d!\n", findPos);
                       machine->WriteRegister(2, FAILED);
                       delete[] filename;
                       break;
@@ -192,13 +187,13 @@ void ExceptionHandler(ExceptionType which) {
 
                     OpenFileID openedSlot = fileSystem->Open(filename, type);
                     if (openedSlot == -1) {
-                        printf("\tError: Unable to open file!\n");
+                        printf("\n\tError: Unable to open file!\n");
                         machine->WriteRegister(2, FAILED);
                         delete[] filename;
                         break;
                     }
 
-                    printf("\"%s\" opened successfully!\n", filename);
+                    //printf("\"%s\" opened successfully!\n", filename);
                     machine->WriteRegister(2, openedSlot);
 
                     delete[] filename;
@@ -209,20 +204,20 @@ void ExceptionHandler(ExceptionType which) {
                     OpenFileID openFileId = machine->ReadRegister(4);
 
                     if(openFileId < 0 || openFileId >= 10){
-                      printf("\tError: Invalid file id!\n");
+                      printf("\n\tError: Invalid file id!\n");
                       machine->WriteRegister(2, FAILED);
                       break;
                     }
 
                     //??? needed?
                     if (fileSystem->openFile[openFileId] == NULL) {
-                        printf("\tError: Close file failed!\n");
+                        printf("\n\tError: Close file failed!\n");
                         machine->WriteRegister(2, FAILED);
                         break;
                     }
 
 
-                    printf("\nFile with name \"%s\" closed successfully!\n", fileSystem->openFile[openFileId]->filename);
+                    //printf("\nFile with name \"%s\" closed successfully!\n", fileSystem->openFile[openFileId]->filename);
                     --(fileSystem->index);
                     delete fileSystem->openFile[openFileId];
                     fileSystem->openFile[openFileId] = NULL;
@@ -235,14 +230,20 @@ void ExceptionHandler(ExceptionType which) {
                     int charCount = machine->ReadRegister(5);
                     int fileId = machine->ReadRegister(6);
 
+                    if(charCount <= 0){
+                      printf("\n\tError: Invalid Char Count!\n");
+                      machine->WriteRegister(2, FAILED);
+                      break;
+                    }
+
                     if (fileId < 0 || fileId >= 10 || fileId == ConsoleOutput) {
-                        printf("\tError: Invalid fileId!\n");
+                        printf("\n\tError: Invalid fileId!\n");
                         machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     if (fileSystem->openFile[fileId] == NULL) {
-                        printf("\tError: Requested file is not opened!\n");
+                        printf("\n\tError: Requested file is not opened!\n");
                         machine->WriteRegister(2, FAILED);
                         break;
                     }
@@ -251,16 +252,16 @@ void ExceptionHandler(ExceptionType which) {
 
                     if (fileId == ConsoleInput) {
                         int bytesRead = gSynchConsole->Read(buffer, charCount);
-                        System2User(virtAddr, bytesRead, buffer);
+                        System2User(virtAddr, bytesRead + 1, buffer);
                         machine->WriteRegister(2, bytesRead);
-                        delete buffer;
+                        delete[] buffer;
                         break;
                     }
 
                     int before = fileSystem->openFile[fileId]->GetCurrentPos();
 
                     // if (before == fileSystem->openFile[fileId]->Length()) {
-                    //     printf("\tError: End of file!\n");
+                    //     printf("\n\tError: End of file!\n");
                     //     machine->WriteRegister(2, -2);
                     //     break;
                     // }
@@ -268,16 +269,16 @@ void ExceptionHandler(ExceptionType which) {
                     if (fileSystem->openFile[fileId]->Read(buffer, charCount) > 0) {
                         int after = fileSystem->openFile[fileId]->GetCurrentPos();
                         int bytesRead = after - before;
-                        System2User(virtAddr, bytesRead, buffer);
+                        System2User(virtAddr, bytesRead + 1, buffer);
                         machine->WriteRegister(2, bytesRead);
 
                     } else {
                         //EOF
                         machine->WriteRegister(2, -2);
                     }
-                    printf("%s\n", buffer);
+                    //printf("%s\n", buffer);
 
-                    delete buffer;
+                    delete[] buffer;
                     break;
                 }
 
@@ -286,25 +287,32 @@ void ExceptionHandler(ExceptionType which) {
                     int charCount = machine->ReadRegister(5);
                     int fileId = machine->ReadRegister(6);
 
+                    if(charCount <= 0){
+                      printf("\n\tError: Invalid Char Count!\n");
+                      machine->WriteRegister(2, FAILED);
+                      break;
+                    }
+
                     if (fileId <= 0 || fileId >= 10) {
-                        printf("\tError: Invalid fileId!\n");
+                        printf("\n\tError: Invalid fileId!\n");
                         machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     if (fileSystem->openFile[fileId] == NULL) {
-                        printf("\tError: Requested file is not opened!\n");
+                        printf("\n\tError: Requested file is not opened!\n");
                         machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     if (fileSystem->openFile[fileId]->type == 1) {
-                        printf("\tError: Permission denied! The requested file is in read-only mode!\n");
+                        printf("\n\tError: Permission denied! The requested file is in read-only mode!\n");
                         machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     char *buffer = User2System(virtAddr, charCount);
+
                     if (fileId == ConsoleOutput) {
                         int bytesWrite = gSynchConsole->Write(buffer, charCount);
                         machine->WriteRegister(2, bytesWrite);
@@ -333,26 +341,26 @@ void ExceptionHandler(ExceptionType which) {
                     int fileId = machine->ReadRegister(5);
 
                     if(fileId == ConsoleInput || fileId == ConsoleOutput){
-                        printf("\tError: You cannot use Seek in console\n");
+                        printf("\n\tError: You cannot use Seek in console\n");
                         machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     if(fileId < ConsoleInput || fileId >= 10){
-                        printf("\tError: Invalid file id!\n");
+                        printf("\n\tError: Invalid file id!\n");
                         machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     if (fileSystem->openFile[fileId] == NULL) {
-                        printf("\tError: Requested file is not opened!\n");
+                        printf("\n\tError: Requested file is not opened!\n");
                         machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     pos = pos == -1 ? fileSystem->openFile[fileId]->Length() : pos;
                     if(pos < 0 || pos > fileSystem->openFile[fileId]->Length()){
-                        printf("\tError: Invalid seek position!\n");
+                        printf("\n\tError: Invalid seek position!\n");
                         machine->WriteRegister(2, FAILED);
                         break;
                     }
@@ -361,6 +369,65 @@ void ExceptionHandler(ExceptionType which) {
                         machine->WriteRegister(2, pos);
                     }
                     break;
+                }
+
+                case SC_Delete:{
+                    int virtAddr = machine->ReadRegister(4);
+                    char* buffer = User2System(virtAddr, MaxFileLength);
+
+                    int findPos = fileSystem->FindByName(buffer);
+                    if(findPos != -1){
+                      printf("\n\tError: File in use (fileId = %d)!\n", findPos);
+                      machine->WriteRegister(2, FAILED);
+                      delete[] buffer;
+                      break;
+                    }
+
+                    if(fileSystem->Remove(buffer)){
+                      machine->WriteRegister(2, SUCCESS);
+                    }
+                    else {
+                      printf("\n\tError: Delete failed!\n");
+                      machine->WriteRegister(2, FAILED);
+                    }
+
+                    delete[] buffer;
+                    break;
+                }
+
+                case SC_Scan:{
+                  int virtAddr = machine->ReadRegister(4);
+                  int charCount = machine->ReadRegister(5);
+
+                  if(charCount <= 0){
+                    printf("\n\tError: Invalid Limit!\n");
+                    machine->WriteRegister(2, FAILED);
+                    break;
+                  }
+
+                  char* buffer = User2System(virtAddr, charCount);
+
+                  int bytesRead = gSynchConsole->Read(buffer, charCount);
+                  System2User(virtAddr, bytesRead + 1, buffer);
+
+                  delete[] buffer;
+                  break;
+                }
+
+                case SC_Print:{
+                  int virtAddr = machine->ReadRegister(4);
+
+                  char* buffer = User2System(virtAddr, MaxFileLength);
+                  int offset = 0;
+
+                  while(buffer[offset] != 0){
+                    gSynchConsole->Write(buffer + offset, 1);
+                    ++offset;
+                  }
+                  gSynchConsole->Write(buffer + offset, 1);
+
+                  delete[] buffer;
+                  break;
                 }
             }
 
@@ -372,37 +439,37 @@ void ExceptionHandler(ExceptionType which) {
             return;
 
         case PageFaultException:
-            printf("\tError: No valid translation found.\n");
+            printf("\n\tError: No valid translation found.\n");
             ASSERT(FALSE);
             break;
 
         case ReadOnlyException:
-            printf("\tError: Write attempted to page marked \"read-only\".\n");
+            printf("\n\tError: Write attempted to page marked \"read-only\".\n");
             ASSERT(FALSE);
             break;
 
         case BusErrorException:
-            printf("\tError: Translation resulted in an invalid physical address.\n");
+            printf("\n\tError: Translation resulted in an invalid physical address.\n");
             ASSERT(FALSE);
             break;
 
         case AddressErrorException:
-            printf("\tError: Unaligned reference or one that was beyond the end of the address space.\n");
+            printf("\n\tError: Unaligned reference or one that was beyond the end of the address space.\n");
             ASSERT(FALSE);
             break;
 
         case OverflowException:
-            printf("\tError: Integer overflow in add or sub.\n");
+            printf("\n\tError: Integer overflow in add or sub.\n");
             ASSERT(FALSE);
             break;
 
         case IllegalInstrException:
-            printf("\tError: Unimplemented or reserved instr.\n");
+            printf("\n\tError: Unimplemented or reserved instr.\n");
             ASSERT(FALSE);
             break;
 
         case NumExceptionTypes:
-            printf("\tError: NumExceptionTypes\n");
+            printf("\n\tError: NumExceptionTypes\n");
             ASSERT(FALSE);
             break;
     }

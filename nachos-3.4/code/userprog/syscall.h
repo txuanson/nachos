@@ -30,6 +30,12 @@
 #define SC_Fork		    9
 #define SC_Yield	    10
 #define SC_Seek  	    11
+#define SC_Delete     12
+
+// alternatives
+#define SC_Print      30
+#define SC_Scan       31
+
 
 
 #ifndef IN_ASM
@@ -89,6 +95,14 @@ typedef int OpenFileID;
 #define ConsoleInput	0
 #define ConsoleOutput	1
 
+// maximum filename length
+#define MaxFileLength 255
+
+// General response
+#define SUCCESS 0
+#define FAILED -1
+
+
 /* Create a Nachos file, with "name" */
 int CreateFile(char *name);
 
@@ -114,7 +128,6 @@ int Read(char *buffer, int size, OpenFileID id);
 void Close(OpenFileId id);
 int CloseFile(OpenFileID id);
 
-int Seek(int pos, OpenFileID id);
 
 /* User-level thread operations: Fork and Yield.  To allow multiple
  * threads to run within a user program.
@@ -129,6 +142,15 @@ void Fork(void (*func)());
  * or not.
  */
 void Yield();
+
+int Seek(int pos, OpenFileID id);
+
+int Delete(char* name);
+
+void Scan(char* buffer, int limit);
+
+void Print(char* buffer);
+
 
 #endif /* IN_ASM */
 
