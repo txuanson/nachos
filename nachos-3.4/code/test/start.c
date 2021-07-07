@@ -98,14 +98,6 @@ Read:
 	j	$31
 	.end Read
 
-  .globl WriteFile
-  .ent	WriteFile
-  WriteFile:
-  addiu $2,$0,SC_Write
-  syscall
-  j	$31
-  .end WriteFile
-
   .globl Write
   .ent	Write
   Write:
@@ -122,21 +114,13 @@ Read:
   j	$31
   .end Seek
 
-	.globl CloseFile
-	.ent	CloseFile
+  .globl CloseFile
+  .ent	CloseFile
 CloseFile:
-	addiu $2,$0,SC_Close
-	syscall
-	j	$31
-	.end CloseFile
-
-  .globl Close
-  .ent	Close
-Close:
   addiu $2,$0,SC_Close
   syscall
   j	$31
-  .end Close
+  .end CloseFile
 
 	.globl Fork
 	.ent	Fork

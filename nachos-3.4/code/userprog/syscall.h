@@ -99,8 +99,8 @@ OpenFileID Open(char *name, int type);
 //OpenFileId Open(char *name);
 
 /* Write "size" bytes from "buffer" to the open file. */
-void Write(char *buffer, int size, OpenFileID id);
-int WriteFile(char *buffer, int size, OpenFileID id);
+//void Write(char *buffer, int size, OpenFileID id);
+int Write(char *buffer, int size, OpenFileID id);
 
 /* Read "size" bytes from the open file into "buffer".
  * Return the number of bytes actually read -- if the open file isn't

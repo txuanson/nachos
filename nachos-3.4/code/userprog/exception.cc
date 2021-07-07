@@ -178,6 +178,7 @@ void ExceptionHandler(ExceptionType which) {
                     if (strlen(filename) == 0) {
                         printf("\tError: Invalid file name!\n");
                         machine->WriteRegister(2, -1);
+                        delete[] filename;
                         break;
                     }
 
@@ -199,6 +200,7 @@ void ExceptionHandler(ExceptionType which) {
                     if (openedSlot == -1) {
                         printf("\tError: Unable to open file!\n");
                         machine->WriteRegister(2, -1);
+                        delete[] filename;
                         break;
                     }
 
@@ -212,6 +214,12 @@ void ExceptionHandler(ExceptionType which) {
                 case SC_Close: {
                     OpenFileID openFileId = machine->ReadRegister(4);
 
+                    if(openFileId < 0 || openFileId >= 10){
+                      printf("\tError: Invalid file id!\n");
+                      machine->WriteRegister(2, -1);
+                      break;
+                    }
+                    
                     //??? needed?
                     if (fileSystem->openFile[openFileId] == NULL) {
                         printf("\tError: Close file failed!\n");
@@ -221,7 +229,7 @@ void ExceptionHandler(ExceptionType which) {
 
                     delete fileSystem->openFile[openFileId];
                     fileSystem->openFile[openFileId] = NULL;
-                    printf("File with id \"%d\" closed successfully!\n", openFileId);
+                    printf("\nFile with id \"%d\" closed successfully!\n", openFileId);
                     --(fileSystem->index);
                     machine->WriteRegister(2, 0);
                     break;
@@ -330,13 +338,13 @@ void ExceptionHandler(ExceptionType which) {
                 case SC_Seek: {
                     int pos = machine->ReadRegister(4);
                     int fileId = machine->ReadRegister(5);
-                    
+
                     if(fileId == ConsoleInput || fileId == ConsoleOutput){
                         printf("\tError: You cannot use Seek in console\n");
                         machine->WriteRegister(2, -1);
                         break;
                     }
-                    
+
                     if(fileId < ConsoleInput || fileId >= 10){
                         printf("\tError: Invalid file id!\n");
                         machine->WriteRegister(2, -1);
