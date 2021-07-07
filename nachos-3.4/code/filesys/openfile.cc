@@ -33,6 +33,7 @@ OpenFile::OpenFile(int sector)
     hdr->FetchFrom(sector);
     seekPosition = 0;
     type = 0;
+    filename = new char[1];
 }
 
 //----------------------------------------------------------------------
@@ -50,7 +51,7 @@ OpenFile::OpenFile(int sector, int type, char* filename)
     hdr->FetchFrom(sector);
     seekPosition = 0;
     this->type = type;
-    this->filename = filename;
+    this->filename = deepCopy(filename);
 }
 
 //----------------------------------------------------------------------
@@ -60,8 +61,8 @@ OpenFile::OpenFile(int sector, int type, char* filename)
 
 OpenFile::~OpenFile()
 {
+    delete[] filename;
     delete hdr;
-    //delete[] filename;
 }
 
 //----------------------------------------------------------------------

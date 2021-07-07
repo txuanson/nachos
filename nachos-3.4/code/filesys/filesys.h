@@ -68,16 +68,17 @@ class FileSystem {
         this->Create("stdout", 0);
 
         openFile[index] = this->Open("stdin");
-        openFile[index]->filename = "stdin";
+        openFile[index]->filename = deepCopy("stdin");
         openFile[index++]->type = F_RO;
         openFile[index] = this->Open("stdout");
-        openFile[index]->filename = "stdout";
+        openFile[index]->filename = deepCopy("stdout");
         openFile[index++]->type = F_RW;
     }
 
     ~FileSystem() {
         for (int i = 0; i < FileDirSize; ++i)
-            delete openFile[i];
+            if(openFile[i])
+              delete openFile[i];
         delete[] openFile;
     }
 
@@ -112,6 +113,14 @@ class FileSystem {
         return -1;
     }
 
+    int FindByName(char* filename){
+      for(int i = 0; i < FileDirSize; ++i){
+        if(openFile[i] && strcmp(openFile[i]->filename, filename) == 0)
+          return i;
+      }
+      return -1;
+    }
+
     bool Remove(char *name) { return Unlink(name) == 0; }
 };
 
@@ -142,6 +151,14 @@ class FileSystem {
     void Print();  // List all the files and their contents
 
     int FindFreeSlot();
+
+    int FindByName(char* filename){
+      for(int i = 0; i < FileDirSize; ++i){
+        if(openFile[i] && strcmp(openFile[i]->filename, filename) == 0)
+          return i;
+      }
+      return -1;
+    }
    private:
     OpenFile* freeMapFile;    // Bit map of free disk blocks,
                               // represented as a file

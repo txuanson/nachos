@@ -35,15 +35,16 @@ class OpenFile {
         file = f;
         currentOffset = 0;
         type = 0;
+        filename = new char[1];
     }  // open the file
     OpenFile(int f, int t, char *filename) {
         file = f;
         currentOffset = 0;
         type = t;
-        this->filename = filename;
+        this->filename = deepCopy(filename);
     }  // open the file
     ~OpenFile() {
-        //delete[] filename;
+        delete[] filename;
         Close(file);
     }  // close the file
 

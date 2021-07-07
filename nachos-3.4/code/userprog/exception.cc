@@ -116,7 +116,7 @@ void ExceptionHandler(ExceptionType which) {
     int type = machine->ReadRegister(2);
 
     switch (which) {
-        case SyscallException:
+        case SyscallException: {
             switch (type) {
                 case SC_Halt: {
                     printf("\nShutdown, initiated by user program.\n");
@@ -182,19 +182,13 @@ void ExceptionHandler(ExceptionType which) {
                         break;
                     }
 
-                    // if (strcmp(filename, "stdin") == 0) {
-                    //     printf("----------stdin----------\n");
-                    //     machine->WriteRegister(2, 0);
-                    //     delete[] filename;
-                    //     break;
-                    // }
-
-                    // if (strcmp(filename, "stdout") == 0) {
-                    //     printf("----------stdout----------\n");
-                    //     machine->WriteRegister(2, 1);
-                    //     delete[] filename;
-                    //     break;
-                    // }
+                    int findPos = fileSystem->FindByName(filename);
+                    if (findPos != -1){
+                      printf("\tError: File opened at id %d!\n", findPos);
+                      machine->WriteRegister(2, FAILED);
+                      delete[] filename;
+                      break;
+                    }
 
                     OpenFileID openedSlot = fileSystem->Open(filename, type);
                     if (openedSlot == -1) {
@@ -216,7 +210,7 @@ void ExceptionHandler(ExceptionType which) {
 
                     if(openFileId < 0 || openFileId >= 10){
                       printf("\tError: Invalid file id!\n");
-                      machine->WriteRegister(2, -1);
+                      machine->WriteRegister(2, FAILED);
                       break;
                     }
 
@@ -243,13 +237,13 @@ void ExceptionHandler(ExceptionType which) {
 
                     if (fileId < 0 || fileId >= 10 || fileId == ConsoleOutput) {
                         printf("\tError: Invalid fileId!\n");
-                        machine->WriteRegister(2, -1);
+                        machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     if (fileSystem->openFile[fileId] == NULL) {
                         printf("\tError: Requested file is not opened!\n");
-                        machine->WriteRegister(2, -1);
+                        machine->WriteRegister(2, FAILED);
                         break;
                     }
 
@@ -259,7 +253,7 @@ void ExceptionHandler(ExceptionType which) {
                         int bytesRead = gSynchConsole->Read(buffer, charCount);
                         System2User(virtAddr, bytesRead, buffer);
                         machine->WriteRegister(2, bytesRead);
-                        delete[] buffer;
+                        delete buffer;
                         break;
                     }
 
@@ -281,8 +275,9 @@ void ExceptionHandler(ExceptionType which) {
                         //EOF
                         machine->WriteRegister(2, -2);
                     }
+                    printf("%s\n", buffer);
 
-                    delete[] buffer;
+                    delete buffer;
                     break;
                 }
 
@@ -293,27 +288,25 @@ void ExceptionHandler(ExceptionType which) {
 
                     if (fileId <= 0 || fileId >= 10) {
                         printf("\tError: Invalid fileId!\n");
-                        machine->WriteRegister(2, -1);
+                        machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     if (fileSystem->openFile[fileId] == NULL) {
                         printf("\tError: Requested file is not opened!\n");
-                        machine->WriteRegister(2, -1);
+                        machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     if (fileSystem->openFile[fileId]->type == 1) {
                         printf("\tError: Permission denied! The requested file is in read-only mode!\n");
-                        machine->WriteRegister(2, -1);
+                        machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     char *buffer = User2System(virtAddr, charCount);
-
                     if (fileId == ConsoleOutput) {
                         int bytesWrite = gSynchConsole->Write(buffer, charCount);
-                        System2User(virtAddr, bytesWrite, buffer);
                         machine->WriteRegister(2, bytesWrite);
                         delete[] buffer;
                         break;
@@ -324,7 +317,6 @@ void ExceptionHandler(ExceptionType which) {
                     if (fileSystem->openFile[fileId]->Write(buffer, charCount) > 0) {
                         int after = fileSystem->openFile[fileId]->GetCurrentPos();
                         int bytesWrite = after - before;
-                        System2User(virtAddr, bytesWrite, buffer);
                         machine->WriteRegister(2, bytesWrite);
 
                     } else {
@@ -342,26 +334,26 @@ void ExceptionHandler(ExceptionType which) {
 
                     if(fileId == ConsoleInput || fileId == ConsoleOutput){
                         printf("\tError: You cannot use Seek in console\n");
-                        machine->WriteRegister(2, -1);
+                        machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     if(fileId < ConsoleInput || fileId >= 10){
                         printf("\tError: Invalid file id!\n");
-                        machine->WriteRegister(2, -1);
+                        machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     if (fileSystem->openFile[fileId] == NULL) {
                         printf("\tError: Requested file is not opened!\n");
-                        machine->WriteRegister(2, -1);
+                        machine->WriteRegister(2, FAILED);
                         break;
                     }
 
                     pos = pos == -1 ? fileSystem->openFile[fileId]->Length() : pos;
                     if(pos < 0 || pos > fileSystem->openFile[fileId]->Length()){
                         printf("\tError: Invalid seek position!\n");
-                        machine->WriteRegister(2, -1);
+                        machine->WriteRegister(2, FAILED);
                         break;
                     }
                     else {
@@ -374,7 +366,7 @@ void ExceptionHandler(ExceptionType which) {
 
             InscreasePC();
             break;
-
+        }
         case NoException:
             interrupt->Halt();
             return;
