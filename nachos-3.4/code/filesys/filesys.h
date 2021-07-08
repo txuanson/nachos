@@ -56,23 +56,22 @@ class FileSystem {
                          // 0   - STDIN
                          // 1   - STDOUT
                          // ... - FILES
-    int index;           // Current number of OpenFile in openFile
 
     FileSystem(bool format) {
         openFile = new OpenFile *[FileDirSize];
-        index = 0;
         for (int i = 0; i < FileDirSize; ++i)
             openFile[i] = NULL;
 
         this->Create("stdin", 0);
         this->Create("stdout", 0);
 
-        openFile[index] = this->Open("stdin");
-        openFile[index]->filename = deepCopy("stdin");
-        openFile[index++]->type = F_RO;
-        openFile[index] = this->Open("stdout");
-        openFile[index]->filename = deepCopy("stdout");
-        openFile[index++]->type = F_RW;
+        openFile[0] = this->Open("stdin");
+        openFile[0]->filename = deepCopy("stdin");
+        openFile[0]->type = F_RO;
+
+        openFile[1] = this->Open("stdout");
+        openFile[1]->filename = deepCopy("stdout");
+        openFile[1]->type = F_RW;
     }
 
     ~FileSystem() {
@@ -97,14 +96,10 @@ class FileSystem {
 	  return new OpenFile(fileDescriptor);
     }
 
-    OpenFileID Open(char *name, int type) {
+    OpenFile *Open(char *name, int type) {
         int fileDescriptor = OpenForReadWrite(name, FALSE);
-
-        if (fileDescriptor == -1) return -1;
-        int freeSlot = this->FindFreeSlot();
-        openFile[freeSlot] = new OpenFile(fileDescriptor, type, name);
-        ++index;
-        return openFile[freeSlot] ? freeSlot : -1;
+        if (fileDescriptor == -1) return NULL;
+          return new OpenFile(fileDescriptor, type, name);
     }
 
     int FindFreeSlot(){
@@ -128,7 +123,6 @@ class FileSystem {
 class FileSystem {
    public:
     OpenFile** openFile;  // A table contains OpenFile (default 10)
-    int index;           // Current number of OpenFile in openFile
 
 
     FileSystem(bool format);  // Initialize the file system.
@@ -142,7 +136,7 @@ class FileSystem {
     // Create a file (UNIX creat)
 
     OpenFile* Open(char* name);            // Open a file (UNIX open)
-    OpenFileID Open(char* name, int type);  // Open a file (UNIX open)
+    OpenFile* Open(char* name, int type);  // Open a file (UNIX open)
 
     bool Remove(char* name);  // Delete a file (UNIX unlink)
 

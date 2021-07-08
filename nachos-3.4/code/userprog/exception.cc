@@ -132,13 +132,13 @@ void ExceptionHandler(ExceptionType which) {
                         break;
                     }
 
-                    if (filename == NULL) {
+                    /*if (filename == NULL) {
                         DEBUG('a', "\n\tError: Not enough memory in system to store filename");
                         printf("\n\tError: Not enough memory in system");
                         machine->WriteRegister(2, FAILED);
                         delete[] filename;
                         break;
-                    }
+                    }*/
 
                     if (!fileSystem->Create(filename, 0)) {
                         printf("\n\tError: Error when creating file: \"%s\"", filename);
@@ -156,7 +156,8 @@ void ExceptionHandler(ExceptionType which) {
                     int virtAddr = machine->ReadRegister(4);
                     int type = machine->ReadRegister(5);
 
-                    if (fileSystem->index >= 10) {
+                    int freeSlot = fileSystem->FindFreeSlot();
+                    if (freeSlot == -1) {
                         printf("\n\tError: Not enough space in fileDir!\n");
                         machine->WriteRegister(2, FAILED);
                         break;
@@ -185,16 +186,15 @@ void ExceptionHandler(ExceptionType which) {
                       break;
                     }
 
-                    OpenFileID openedSlot = fileSystem->Open(filename, type);
-                    if (openedSlot == -1) {
+                    if ((fileSystem->openFile[freeSlot] = fileSystem->Open(filename, type)) == NULL) {
                         printf("\n\tError: Unable to open file!\n");
                         machine->WriteRegister(2, FAILED);
                         delete[] filename;
                         break;
                     }
 
-                    //printf("\"%s\" opened successfully!\n", filename);
-                    machine->WriteRegister(2, openedSlot);
+                    //printf("\"%s\" opened successfully! Id = %d\n", filename, freeSlot);
+                    machine->WriteRegister(2, freeSlot);
 
                     delete[] filename;
                     break;
@@ -218,7 +218,6 @@ void ExceptionHandler(ExceptionType which) {
 
 
                     //printf("\nFile with name \"%s\" closed successfully!\n", fileSystem->openFile[openFileId]->filename);
-                    --(fileSystem->index);
                     delete fileSystem->openFile[openFileId];
                     fileSystem->openFile[openFileId] = NULL;
                     machine->WriteRegister(2, 0);

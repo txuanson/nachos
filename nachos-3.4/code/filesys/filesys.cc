@@ -79,18 +79,18 @@
 
 FileSystem::FileSystem(bool format) {
     openFile = new OpenFile *[FileDirSize];
-    index = 0;
     for (int i = 0; i < FileDirSize; ++i)
         openFile[i] = NULL;
     this->Create("stdin", 0);
     this->Create("stdout", 0);
 
-    openFile[index] = this->Open("stdin");
-    openFile[index]->filename = deepCopy("stdin");
-    openFile[index++]->type = F_RO;
-    openFile[index] = this->Open("stdout");
-    openFile[index]->filename = deepCopy("stdout");
-    openFile[index++]->type = F_RW;
+    openFile[0] = this->Open("stdin");
+    openFile[0]->filename = deepCopy("stdin");
+    openFile[0]->type = F_RO;
+
+    openFile[1] = this->Open("stdout");
+    openFile[1]->filename = deepCopy("stdout");
+    openFile[1]->type = F_RW;
     DEBUG('f', "Initializing the file system.\n");
     if (format) {
         BitMap *freeMap = new BitMap(NumSectors);
@@ -266,22 +266,20 @@ FileSystem::Open(char *name) {
 //	"name" -- the text name of the file to be opened
 //----------------------------------------------------------------------
 
-OpenFileID
+OpenFile *
 FileSystem::Open(char *name, int type) {
     Directory *directory = new Directory(NumDirEntries);
-    //OpenFile *openFile = NULL;
+    OpenFile *newFile = NULL;
     int sector;
 
     DEBUG('f', "Opening file %s\n", name);
     directory->FetchFrom(directoryFile);
     sector = directory->Find(name);
 
-    int freeSlot = this->FindFreeSlot();
     if (sector >= 0)
-        openFile[freeSlot] = new OpenFile(sector, type, name);  // name was found in directory
+        newFile = new OpenFile(sector, type, name);
     delete directory;
-    ++index;
-    return openFile[freeSlot] ? freeSlot : -1;  // return -1 if not found
+    return newFile;
 }
 
 //----------------------------------------------------------------------
