@@ -2,9 +2,9 @@
 # Not Another Completely Heuristic Operating System
 [![NachOS](https://slideplayer.com/7415498/24/images/slide_1.jpg)](https://en.wikipedia.org/wiki/Not_Another_Completely_Heuristic_Operating_System)
 ## Table of contents
-- [💡 How to use this repository](https://github.com/txuanson/nachos#-how-to-use-this-repository)
-- [📦 Setting up NachOS enviroment](https://github.com/txuanson/nachos#-setting-up-nachos-enviroment)
-- [🔨 Implements](https://github.com/txuanson/nachos#-implements)
+- [💡 How to use this repository](#-how-to-use-this-repository)
+- [📦 Setting up NachOS enviroment](#-setting-up-nachos-enviroment)
+- [🔨 Implements](#-implements)
 ### 💡 How to use this repository
 - Update, install git and make:
 ```sh
