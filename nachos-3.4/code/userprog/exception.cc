@@ -295,12 +295,10 @@ void ExceptionHandler(ExceptionType which) {
                     //     break;
                     // }
 
-                    if (fileSystem->openFile[fileId]->Read(buffer, charCount) > 0) {
-                        int after = fileSystem->openFile[fileId]->GetCurrentPos();
-                        int bytesRead = after - before;
+                    int bytesRead = fileSystem->openFile[fileId]->Read(buffer, charCount);
+                    if (bytesRead > 0) {
                         System2User(virtAddr, bytesRead + 1, buffer);
                         machine->WriteRegister(2, bytesRead);
-
                     } else {
                         //EOF
                         machine->WriteRegister(2, -2);
@@ -358,13 +356,9 @@ void ExceptionHandler(ExceptionType which) {
                         break;
                     }
 
-                    int before = fileSystem->openFile[fileId]->GetCurrentPos();
-
-                    if (fileSystem->openFile[fileId]->Write(buffer, charCount) > 0) {
-                        int after = fileSystem->openFile[fileId]->GetCurrentPos();
-                        int bytesWrite = after - before;
+                    int bytesWrite = fileSystem->openFile[fileId]->Write(buffer, charCount);
+                    if (bytesWrite > 0) {
                         machine->WriteRegister(2, bytesWrite);
-
                     } else {
                         //EOF
                         machine->WriteRegister(2, -2);
@@ -460,7 +454,6 @@ void ExceptionHandler(ExceptionType which) {
                     }
 
                     char *buffer = User2System(virtAddr, charCount);
-
                     int bytesRead = gSynchConsole->Read(buffer, charCount);
                     System2User(virtAddr, bytesRead + 1, buffer);
 
@@ -482,6 +475,7 @@ void ExceptionHandler(ExceptionType which) {
                         gSynchConsole->Write(buffer + offset, 1);
                         ++offset;
                     }
+                    
                     gSynchConsole->Write(buffer + offset, 1);
 
                     delete[] buffer;
