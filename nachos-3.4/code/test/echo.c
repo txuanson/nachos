@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
 
 	Print("Input something: ");
 	Scan(content, MaxFileLength);
-  Print(content);
+  	Print(content);
 
 	return 0;
 }

@@ -143,12 +143,24 @@ void Fork(void (*func)());
  */
 void Yield();
 
+/* Seek the pointer to the "pos" position in the file with "id",
+*  Specify pos = -1 to seek to the end of file.
+*/
 int Seek(int pos, OpenFileID id);
 
+/* Delete file with "name"
+*  Does not delete the file which is being used
+*/
 int Delete(char* name);
 
+/* Read from console and store read characters to "buffer"
+*  with "limit" characters being read
+*/
 void Scan(char* buffer, int limit);
 
+
+/* Write to console with the content of "buffer"
+*/
 void Print(char* buffer);
 
 

@@ -118,6 +118,13 @@ void ExceptionHandler(ExceptionType which) {
                     interrupt->Halt();
                     return;
                 }
+                //----------------------------------------------------------------------
+                // CreateFile
+                // Create a new file
+                // Input:  - name : the name of the file will be created
+                // Output: - 0    : File created successfully
+                //         - -1   : Error
+                //----------------------------------------------------------------------
                 case SC_CreateFile: {
                     int virtAddr;
                     char *filename;
@@ -152,6 +159,15 @@ void ExceptionHandler(ExceptionType which) {
                     delete[] filename;
                     break;
                 }
+                //----------------------------------------------------------------------
+                // Open
+                // Open the Nachos file "name", and return an "OpenFileId" that can
+                // be used to read and write to the file
+                // Input:  - name         : The name of the file will be created
+                //         - type         : A flag define the mode of the file will be opened in
+                // Output: - Positive int : The OpenFileID of the opended file --> File Opened successfully
+                //         - -1           : Error
+                //----------------------------------------------------------------------
                 case SC_Open: {
                     int virtAddr = machine->ReadRegister(4);
                     int type = machine->ReadRegister(5);
@@ -179,11 +195,11 @@ void ExceptionHandler(ExceptionType which) {
                     }
 
                     int findPos = fileSystem->FindByName(filename);
-                    if (findPos != -1){
-                      printf("\n\tError: File opened at id %d!\n", findPos);
-                      machine->WriteRegister(2, FAILED);
-                      delete[] filename;
-                      break;
+                    if (findPos != -1) {
+                        printf("\n\tError: File opened at id %d!\n", findPos);
+                        machine->WriteRegister(2, FAILED);
+                        delete[] filename;
+                        break;
                     }
 
                     if ((fileSystem->openFile[freeSlot] = fileSystem->Open(filename, type)) == NULL) {
@@ -199,23 +215,28 @@ void ExceptionHandler(ExceptionType which) {
                     delete[] filename;
                     break;
                 }
-
+                //----------------------------------------------------------------------
+                // CloseFile
+                // Close the file, we're done reading and writing to it
+                // Input:  - id           : The id of the file in the openFile of the fileSystem
+                //         - type         : A flag define the mode of the file will be opened in
+                // Output: - 0            : File closed successfully
+                //         - -1           : Error
+                //----------------------------------------------------------------------
                 case SC_Close: {
                     OpenFileID openFileId = machine->ReadRegister(4);
 
-                    if(openFileId < 0 || openFileId >= 10){
-                      printf("\n\tError: Invalid file id!\n");
-                      machine->WriteRegister(2, FAILED);
-                      break;
+                    if (openFileId < 0 || openFileId >= 10) {
+                        printf("\n\tError: Invalid file id!\n");
+                        machine->WriteRegister(2, FAILED);
+                        break;
                     }
 
-                    //??? needed?
                     if (fileSystem->openFile[openFileId] == NULL) {
                         printf("\n\tError: Close file failed!\n");
                         machine->WriteRegister(2, FAILED);
                         break;
                     }
-
 
                     //printf("\nFile with name \"%s\" closed successfully!\n", fileSystem->openFile[openFileId]->filename);
                     delete fileSystem->openFile[openFileId];
@@ -223,16 +244,25 @@ void ExceptionHandler(ExceptionType which) {
                     machine->WriteRegister(2, 0);
                     break;
                 }
-
+                //----------------------------------------------------------------------
+                // Read
+                // Read opened file by the fileId and return number of characted read.
+                // Input:  - buffer       : An address which the read content will be stored here
+                //         - charCount    : "Maximum" char will be read
+                //         - fileId       : Id of the file in the openFile. 0 - ConsoleInput | 1 - ConsoleOutput
+                // Output: - int > 0      : Number of characters actually read
+                //         - -1           : Error
+                //         - -2           : EOF detected
+                //----------------------------------------------------------------------
                 case SC_Read: {
                     int virtAddr = machine->ReadRegister(4);
                     int charCount = machine->ReadRegister(5);
                     int fileId = machine->ReadRegister(6);
 
-                    if(charCount <= 0){
-                      printf("\n\tError: Invalid Char Count!\n");
-                      machine->WriteRegister(2, FAILED);
-                      break;
+                    if (charCount <= 0) {
+                        printf("\n\tError: Invalid Char Count!\n");
+                        machine->WriteRegister(2, FAILED);
+                        break;
                     }
 
                     if (fileId < 0 || fileId >= 10 || fileId == ConsoleOutput) {
@@ -280,16 +310,25 @@ void ExceptionHandler(ExceptionType which) {
                     delete[] buffer;
                     break;
                 }
-
+                //----------------------------------------------------------------------
+                // Write
+                // Write to opened file by the fileId and return number of characted writen.
+                // Input:  - buffer       : An address which the content will be writen stored
+                //         - charCount    : "Maximum" char will be writen
+                //         - fileId       : Id of the file in the openFile. 0 - ConsoleInput | 1 - ConsoleOutput
+                // Output: - int > 0      : Number of characters actually writen
+                //         - -1           : Error
+                //         - -2           : EOF detected
+                //----------------------------------------------------------------------
                 case SC_Write: {
                     int virtAddr = machine->ReadRegister(4);
                     int charCount = machine->ReadRegister(5);
                     int fileId = machine->ReadRegister(6);
 
-                    if(charCount <= 0){
-                      printf("\n\tError: Invalid Char Count!\n");
-                      machine->WriteRegister(2, FAILED);
-                      break;
+                    if (charCount <= 0) {
+                        printf("\n\tError: Invalid Char Count!\n");
+                        machine->WriteRegister(2, FAILED);
+                        break;
                     }
 
                     if (fileId <= 0 || fileId >= 10) {
@@ -334,18 +373,25 @@ void ExceptionHandler(ExceptionType which) {
                     delete[] buffer;
                     break;
                 }
-
+                //----------------------------------------------------------------------
+                // Seek
+                // Seek the pointer to the specified position.
+                // Input:  - pos          : Position of the pointer, pass -1 to seek to end of file
+                //         - fileId       : Id of the file in the openFile
+                // Output: - int > 0      : Position of the file after seeking
+                //         - -1           : Error
+                //----------------------------------------------------------------------
                 case SC_Seek: {
                     int pos = machine->ReadRegister(4);
                     int fileId = machine->ReadRegister(5);
 
-                    if(fileId == ConsoleInput || fileId == ConsoleOutput){
+                    if (fileId == ConsoleInput || fileId == ConsoleOutput) {
                         printf("\n\tError: You cannot use Seek in console\n");
                         machine->WriteRegister(2, FAILED);
                         break;
                     }
 
-                    if(fileId < ConsoleInput || fileId >= 10){
+                    if (fileId < ConsoleInput || fileId >= 10) {
                         printf("\n\tError: Invalid file id!\n");
                         machine->WriteRegister(2, FAILED);
                         break;
@@ -358,75 +404,88 @@ void ExceptionHandler(ExceptionType which) {
                     }
 
                     pos = pos == -1 ? fileSystem->openFile[fileId]->Length() : pos;
-                    if(pos < 0 || pos > fileSystem->openFile[fileId]->Length()){
+                    if (pos < 0 || pos > fileSystem->openFile[fileId]->Length()) {
                         printf("\n\tError: Invalid seek position!\n");
                         machine->WriteRegister(2, FAILED);
                         break;
-                    }
-                    else {
+                    } else {
                         fileSystem->openFile[fileId]->Seek(pos);
                         machine->WriteRegister(2, pos);
                     }
                     break;
                 }
-
-                case SC_Delete:{
+                //----------------------------------------------------------------------
+                // Delete
+                // Delete the file which not being opened
+                // Input:  - filename     : The name of the file being deleted
+                // Output: - 0            : File deleted successfully
+                //         - -1           : Error
+                //----------------------------------------------------------------------
+                case SC_Delete: {
                     int virtAddr = machine->ReadRegister(4);
-                    char* buffer = User2System(virtAddr, MaxFileLength);
+                    char *buffer = User2System(virtAddr, MaxFileLength);
 
                     int findPos = fileSystem->FindByName(buffer);
-                    if(findPos != -1){
-                      printf("\n\tError: File in use (fileId = %d)!\n", findPos);
-                      machine->WriteRegister(2, FAILED);
-                      delete[] buffer;
-                      break;
+                    if (findPos != -1) {
+                        printf("\n\tError: File in use (fileId = %d)!\n", findPos);
+                        machine->WriteRegister(2, FAILED);
+                        delete[] buffer;
+                        break;
                     }
 
-                    if(fileSystem->Remove(buffer)){
-                      machine->WriteRegister(2, SUCCESS);
-                    }
-                    else {
-                      printf("\n\tError: Delete failed!\n");
-                      machine->WriteRegister(2, FAILED);
+                    if (fileSystem->Remove(buffer)) {
+                        machine->WriteRegister(2, SUCCESS);
+                    } else {
+                        printf("\n\tError: Delete failed!\n");
+                        machine->WriteRegister(2, FAILED);
                     }
 
                     delete[] buffer;
                     break;
                 }
+                //----------------------------------------------------------------------
+                // Scan
+                // Read from console
+                // Input:  - buffer       : Address of the buffer which store the read characters
+                //         - charCount    : "Maximum" char will be read
+                //----------------------------------------------------------------------
+                case SC_Scan: {
+                    int virtAddr = machine->ReadRegister(4);
+                    int charCount = machine->ReadRegister(5);
 
-                case SC_Scan:{
-                  int virtAddr = machine->ReadRegister(4);
-                  int charCount = machine->ReadRegister(5);
+                    if (charCount <= 0) {
+                        printf("\n\tError: Invalid Limit!\n");
+                        machine->WriteRegister(2, FAILED);
+                        break;
+                    }
 
-                  if(charCount <= 0){
-                    printf("\n\tError: Invalid Limit!\n");
-                    machine->WriteRegister(2, FAILED);
+                    char *buffer = User2System(virtAddr, charCount);
+
+                    int bytesRead = gSynchConsole->Read(buffer, charCount);
+                    System2User(virtAddr, bytesRead + 1, buffer);
+
+                    delete[] buffer;
                     break;
-                  }
-
-                  char* buffer = User2System(virtAddr, charCount);
-
-                  int bytesRead = gSynchConsole->Read(buffer, charCount);
-                  System2User(virtAddr, bytesRead + 1, buffer);
-
-                  delete[] buffer;
-                  break;
                 }
+                //----------------------------------------------------------------------
+                // Print
+                // Write to console
+                // Input:  - buffer       : Address of the buffer which will be used to write to console
+                //----------------------------------------------------------------------
+                case SC_Print: {
+                    int virtAddr = machine->ReadRegister(4);
 
-                case SC_Print:{
-                  int virtAddr = machine->ReadRegister(4);
+                    char *buffer = User2System(virtAddr, MaxFileLength);
+                    int offset = 0;
 
-                  char* buffer = User2System(virtAddr, MaxFileLength);
-                  int offset = 0;
-
-                  while(buffer[offset] != 0){
+                    while (buffer[offset] != 0) {
+                        gSynchConsole->Write(buffer + offset, 1);
+                        ++offset;
+                    }
                     gSynchConsole->Write(buffer + offset, 1);
-                    ++offset;
-                  }
-                  gSynchConsole->Write(buffer + offset, 1);
 
-                  delete[] buffer;
-                  break;
+                    delete[] buffer;
+                    break;
                 }
             }
 
