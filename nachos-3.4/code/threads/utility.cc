@@ -76,8 +76,9 @@ DEBUG(char flag, char *format, ...)
 
 char* deepCopy(char* text) {
   int len = strlen(text);
-  char* result = new char[len];
+  char* result = new char[len + 1];
   for(int i = 0; i < len; ++i)
     result[i] = text[i];
+  result[len] = '\0';
   return result;
 }

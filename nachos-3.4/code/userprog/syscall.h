@@ -18,23 +18,25 @@
 /* system call codes -- used by the stubs to tell the kernel which system call
  * is being asked for
  */
-#define SC_Halt		    0
-#define SC_Exit		    1
-#define SC_Exec		    2
-#define SC_Join		    3
-#define SC_CreateFile	4
-#define SC_Open		    5
-#define SC_Read		    6
-#define SC_Write	    7
-#define SC_Close	    8
-#define SC_Fork		    9
-#define SC_Yield	    10
-#define SC_Seek  	    11
-#define SC_Delete     12
+#define SC_Halt		       0
+#define SC_Exit		       1
+#define SC_Exec		       2
+#define SC_Join		       3
+#define SC_CreateFile	   4
+#define SC_Open		       5
+#define SC_Read		       6
+#define SC_Write	       7
+#define SC_Close	       8
+#define SC_Fork		       9
+#define SC_Yield	      10
+#define SC_Seek  	      11
+#define SC_Delete       12
 
 // alternatives
-#define SC_Print      30
-#define SC_Scan       31
+#define SC_Print        30
+#define SC_Scan         31
+#define SC_PrintChar    32
+#define SC_PrintString  33
 
 
 
@@ -61,11 +63,13 @@ void Exit(int status);
 
 /* A unique identifier for an executing user program (address space) */
 typedef int SpaceId;
+typedef int SpaceID;
 
 /* Run the executable, stored in the Nachos file "name", and return the
  * address space identifier
  */
-SpaceId Exec(char *name);
+//SpaceID Exec(char *name);
+SpaceID Exec(char *name, int priority);
 
 /* Only return once the the user program "id" has finished.
  * Return the exit status.
@@ -162,6 +166,8 @@ void Scan(char* buffer, int limit);
 /* Write to console with the content of "buffer"
 */
 void Print(char* buffer);
+void PrintChar(char character);
+void PrintString(char* buffer);
 
 
 #endif /* IN_ASM */

@@ -84,6 +84,16 @@ void InscreasePC() {
     machine->registers[NextPCReg] += 4;
 }
 
+void StartProcess(int){
+  //printf("\n%s\n", currentThread->getName());
+  currentThread->space->InitRegisters();
+  currentThread->space->RestoreState();
+
+  machine->Run();
+  return;
+}
+
+int counter = 0;
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -475,14 +485,81 @@ void ExceptionHandler(ExceptionType which) {
                         gSynchConsole->Write(buffer + offset, 1);
                         ++offset;
                     }
-                    
+
                     gSynchConsole->Write(buffer + offset, 1);
 
                     delete[] buffer;
                     break;
                 }
+
+                case SC_PrintChar:{
+			               char c = (char)machine->ReadRegister(4);
+                     //printf("%c", c);
+                     gSynchConsole->Write(&c, 1);
+			               break;
+		            }
+
+                case SC_PrintString: {
+                    int virtAddr = machine->ReadRegister(4);
+
+                    char *buffer = User2System(virtAddr, MaxFileLength);
+                    int offset = 0;
+
+                    while (buffer[offset] != 0) {
+                        gSynchConsole->Write(buffer + offset, 1);
+                        ++offset;
+                    }
+
+                    gSynchConsole->Write(buffer + offset, 1);
+
+                    delete[] buffer;
+                    break;
+                }
+
+                case SC_Exec:{
+                    int virtAddr = machine->ReadRegister(4);
+                    int priority = machine->ReadRegister(5);
+                    SpaceID pId;
+                    char* filename = User2System(virtAddr, MaxFileLength);
+
+                    if(filename == NULL){
+                      printf("\n\t Not enough memory to load the application!\n");
+                      machine->WriteRegister(2, FAILED);
+                      break;
+                    }
+
+                    OpenFile* exe = fileSystem->Open(filename);
+
+                    if (exe == NULL) {
+                      printf("\n\t Unable to open file\n");
+                      machine->WriteRegister(2, FAILED);
+                      break;
+                    }
+
+                    Thread* newThread = new Thread(filename, priority);
+                    newThread->space = new AddrSpace(exe);
+
+                    pId = newThread->processId;
+                    if(pId == -1){
+                      printf("\n\t Could not create thread!\n");
+                      machine->WriteRegister(2, FAILED);
+                      break;
+                    }
+
+                    newThread->Fork(StartProcess, pId);
+
+                    machine->WriteRegister(2, pId);
+                    delete[] filename;
+                    break;
+                }
+                case SC_Exit:{
+  		               currentThread->Finish();
+  			             break;
+                   }
             }
 
+
+            //printf("%d - %d\n", which, type);
             InscreasePC();
             break;
         }

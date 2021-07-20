@@ -31,14 +31,14 @@
 #define PageSize 	SectorSize 	// set the page size equal to
 					// the disk sector size, for
 					// simplicity
-
-#define NumPhysPages    32
+#define MaxNumThread		128
+#define NumPhysPages    128
 #define MemorySize 	(NumPhysPages * PageSize)
 #define TLBSize		4		// if there is a TLB, make it small
 
 enum ExceptionType { NoException,           // Everything ok!
 		     SyscallException,      // A program executed a system call.
-		     PageFaultException,    // No valid translation found
+		     PageFaultException,    // No valid translation foundgBitMapThread
 		     ReadOnlyException,     // Write attempted to page marked
 					    // "read-only"
 		     BusErrorException,     // Translation resulted in an
