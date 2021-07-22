@@ -493,9 +493,9 @@ void ExceptionHandler(ExceptionType which) {
                 }
 
                 case SC_PrintChar:{
-			               char c = (char)machine->ReadRegister(4);
-                     //printf("%c", c);
-                     gSynchConsole->Write(&c, 1);
+			        char c = (char)machine->ReadRegister(4);
+                    //printf("%c", c);
+                    gSynchConsole->Write(&c, 1);
 			               break;
 		            }
 
@@ -550,11 +550,12 @@ void ExceptionHandler(ExceptionType which) {
 
                     machine->WriteRegister(2, pId);
                     delete[] filename;
+                    delete exe;
                     break;
                 }
                 case SC_Exit:{
-  		               currentThread->Finish();
-  			             break;
+  		            currentThread->Finish();
+  			        break;
                    }
             }
 
